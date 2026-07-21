@@ -14,6 +14,7 @@ RUN apk add --no-cache \
         py3-pip \
         py3-virtualenv \
         python3 \
+        su-exec \
         xvfb \
     && mkdir -p /opt/yt-session-generator \
     && wget -q "https://github.com/imputnet/yt-session-generator/archive/${YT_SESSION_GENERATOR_COMMIT}.tar.gz" -O /tmp/yt-session-generator.tar.gz \
@@ -26,6 +27,6 @@ RUN apk add --no-cache \
 COPY --chown=node:node entrypoint.sh /usr/local/bin/puxli-cobalt-entrypoint
 RUN chmod 755 /usr/local/bin/puxli-cobalt-entrypoint
 
-USER node
+USER root
 ENTRYPOINT ["/usr/local/bin/puxli-cobalt-entrypoint"]
 CMD ["node", "src/cobalt"]
