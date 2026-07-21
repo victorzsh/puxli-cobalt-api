@@ -2,7 +2,7 @@ FROM ghcr.io/imputnet/cobalt:11
 
 USER root
 
-ARG YT_SESSION_GENERATOR_COMMIT=8cf18c81999d924e44da95dd6af996c9ac8598f8c9c
+ARG YT_SESSION_GENERATOR_COMMIT=8cf81999d924e44da95dd6af996c9ac8598f8c9c
 
 RUN apk add --no-cache \
         ca-certificates \
