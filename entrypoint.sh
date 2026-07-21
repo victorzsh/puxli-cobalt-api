@@ -13,9 +13,11 @@ fi
 
 umask 077
 export API_URL="${RENDER_EXTERNAL_URL%/}/"
-export API_PORT="${PORT:-10000}"
+export API_PORT="9000"
+export YOUTUBE_WORKER_PORT="9100"
+export YOUTUBE_WORK_DIR="/tmp/puxli-youtube"
 
 printf '{"%s":{"name":"puxli-vercel","limit":60,"allowedServices":["youtube","tiktok","instagram","twitter"]}}\n' \
     "$PUXLI_API_KEY" > /tmp/puxli-cobalt-keys.json
 
-exec "$@"
+exec node /opt/puxli/gateway.mjs "$@"
