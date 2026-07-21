@@ -65,11 +65,11 @@ function verify(token) {
   } catch { return null; }
 }
 
-function ytDlpArgs(job) {
+function ytDlpArgs(job, extractorArgs) {
   const args = [
     "--no-playlist", "--no-progress", "--no-warnings",
     "--js-runtimes", "node",
-    "--extractor-args", "youtube:player_client=mweb;fetch_pot=always",
+    "--extractor-args", extractorArgs,
     "--concurrent-fragments", "2", "--socket-timeout", "30",
     "--retries", "3", "--fragment-retries", "3", "--max-filesize", "1500M",
     "--paths", workDir, "--output", `${job.id}.%(ext)s`,
@@ -86,16 +86,27 @@ function ytDlpArgs(job) {
 
 async function run(job) {
   job.state = "processing";
-  let errorOutput = "";
-  const child = spawn("/opt/yt-dlp/bin/yt-dlp", ytDlpArgs(job), {
-    cwd: workDir, env: { ...process.env, PYTHONUNBUFFERED: "1" }, stdio: ["ignore", "ignore", "pipe"],
-  });
-  child.stderr.on("data", (chunk) => { errorOutput = `${errorOutput}${chunk}`.slice(-8_000); });
-  const timer = setTimeout(() => child.kill("SIGTERM"), 30 * 60 * 1000);
-  const exitCode = await new Promise((resolve) => child.once("close", resolve));
-  clearTimeout(timer);
+  const extractorVariants = [
+    "youtube:player_client=mweb;fetch_pot=always",
+    "youtube:fetch_pot=always",
+    "youtube:player_client=web_embedded",
+  ];
+  let lastError = "";
+  let exitCode = 1;
+  for (const extractorArgs of extractorVariants) {
+    let errorOutput = "";
+    const child = spawn("/opt/yt-dlp/bin/yt-dlp", ytDlpArgs(job, extractorArgs), {
+      cwd: workDir, env: { ...process.env, PYTHONUNBUFFERED: "1" }, stdio: ["ignore", "ignore", "pipe"],
+    });
+    child.stderr.on("data", (chunk) => { errorOutput = `${errorOutput}${chunk}`.slice(-8_000); });
+    const timer = setTimeout(() => child.kill("SIGTERM"), 30 * 60 * 1000);
+    exitCode = await new Promise((resolve) => child.once("close", resolve));
+    clearTimeout(timer);
+    lastError = errorOutput;
+    if (exitCode === 0) break;
+  }
   if (exitCode !== 0) {
-    console.error("YouTube processing failed", { jobId: job.id, exitCode, detail: errorOutput.slice(-1_000) });
+    console.error("YouTube processing failed", { jobId: job.id, exitCode, detail: lastError.slice(-1_000) });
     job.state = "error";
     return;
   }
