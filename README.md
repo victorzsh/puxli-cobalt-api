@@ -7,4 +7,9 @@ It runs the official [`ghcr.io/imputnet/cobalt:11`](https://github.com/imputnet/
 image and creates Cobalt's API-key file at runtime from a Render secret. No secret
 is stored in this repository.
 
+The container also runs the official
+[`imputnet/yt-session-generator`](https://github.com/imputnet/yt-session-generator)
+locally so Cobalt can obtain the YouTube proof-of-origin session it requires from
+the same public IP address.
+
 Cobalt is licensed under the [GNU AGPL v3](https://github.com/imputnet/cobalt/blob/main/LICENSE).
