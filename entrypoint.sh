@@ -17,7 +17,7 @@ export API_PORT="9000"
 export YOUTUBE_WORKER_PORT="9100"
 export YOUTUBE_WORK_DIR="/tmp/puxli-youtube"
 
-printf '{"%s":{"name":"puxli-vercel","limit":60,"allowedServices":["youtube","tiktok","instagram","twitter","reddit"]}}\n' \
+printf '{"%s":{"name":"puxli-vercel","limit":60,"allowedServices":["youtube","tiktok","instagram","twitter","reddit","vimeo"]}}\n' \
     "$PUXLI_API_KEY" > /tmp/puxli-cobalt-keys.json
 
 exec node /opt/puxli/gateway.mjs "$@"
