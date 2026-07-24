@@ -98,6 +98,9 @@ async function run(job) {
     "youtube:player_client=mweb;fetch_pot=always",
     "youtube:fetch_pot=always",
     "youtube:player_client=web_embedded",
+  ] : job.source === "vimeo" ? [
+    "vimeo:client=web",
+    "",
   ] : [""];
   let lastError = "";
   let exitCode = 1;
