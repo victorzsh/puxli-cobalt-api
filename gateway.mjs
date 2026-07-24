@@ -19,7 +19,7 @@ function start(name, command, args) {
 
 const server = http.createServer((request, response) => {
   const path = new URL(request.url || "/", "http://localhost").pathname;
-  const upstreamPort = path.startsWith("/youtube/") || path.startsWith("/reddit/") ? 9100 : 9000;
+  const upstreamPort = path.startsWith("/youtube/") || path.startsWith("/reddit/") || path.startsWith("/vimeo/") ? 9100 : 9000;
   const proxy = http.request({
     hostname: "127.0.0.1",
     port: upstreamPort,
