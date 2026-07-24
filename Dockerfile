@@ -20,7 +20,7 @@ USER root
 RUN apk add --no-cache python3 py3-pip ffmpeg cairo pango jpeg giflib librsvg pixman libstdc++ \
     && python3 -m venv /opt/yt-dlp \
     && /opt/yt-dlp/bin/pip install --no-cache-dir \
-        "yt-dlp==2026.7.4" \
+        "yt-dlp==2026.7.23.234303.dev0" \
         "bgutil-ytdlp-pot-provider==1.3.1"
 
 COPY --from=bgutil-build --chown=node:node /build/bgutil/build /opt/bgutil/build
