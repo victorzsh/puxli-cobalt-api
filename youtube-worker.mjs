@@ -88,7 +88,10 @@ function ytDlpArgs(job, extractorArgs) {
     args.push("--format", "bestaudio/best", "--extract-audio", "--audio-format", "mp3", "--audio-quality", `${job.audioBitrate}K`);
   } else {
     const height = job.quality === "max" ? "" : `[height<=${job.quality}]`;
-    args.push("--format", `bv*${height}+ba/b${height}`, "--merge-output-format", "mp4");
+    const format = job.source === "instagram"
+      ? "b[ext=mp4]/b/bv*+ba/b"
+      : `bv*${height}+ba/b${height}`;
+    args.push("--format", format, "--merge-output-format", "mp4");
   }
   args.push(job.url);
   return args;
