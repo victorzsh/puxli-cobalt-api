@@ -12,6 +12,7 @@ const publicUrl = (process.env.RENDER_EXTERNAL_URL || "").replace(/\/$/, "");
 const ytDlpPath = process.env.YT_DLP_PATH || "/opt/yt-dlp/bin/yt-dlp";
 const allowedQualities = new Set(["max", "2160", "1440", "1080", "720", "480"]);
 const allowedBitrates = new Set(["320", "256", "128"]);
+const videoExtensions = new Set(["mp4", "m4v", "mov", "mkv", "webm"]);
 const jobs = new Map();
 const queue = [];
 let active = false;
@@ -41,6 +42,7 @@ function sourceFromUrl(value) {
       parsed.hostname === "reddit.com" || parsed.hostname.endsWith(".reddit.com") ||
       parsed.hostname === "redd.it" || parsed.hostname.endsWith(".redd.it")
     ) return "reddit";
+    if (parsed.hostname === "instagram.com" || parsed.hostname.endsWith(".instagram.com")) return "instagram";
     if (parsed.hostname === "vimeo.com" || parsed.hostname.endsWith(".vimeo.com")) return "vimeo";
     return null;
   } catch { return null; }
@@ -126,6 +128,13 @@ async function run(job) {
   if (!output) { job.state = "error"; return; }
   job.filePath = path.join(workDir, output);
   const extension = path.extname(output).slice(1).replace(/[^a-z0-9]/gi, "") || (job.mode === "audio" ? "mp3" : "mp4");
+  if (job.mode === "video" && !videoExtensions.has(extension.toLowerCase())) {
+    console.error("Media worker rejected non-video output", { source: job.source, jobId: job.id, extension });
+    try { await unlink(job.filePath); } catch {}
+    job.filePath = null;
+    job.state = "error";
+    return;
+  }
   job.filename = `puxli-${job.source}-${job.id.slice(0, 8)}.${extension}`;
   job.state = "ready";
 }
@@ -194,11 +203,12 @@ const server = http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url || "/", "http://localhost");
     if (request.method === "GET" && url.pathname === "/youtube/health") return json(response, 200, { status: "ok" });
+    if (request.method === "GET" && url.pathname === "/instagram/health") return json(response, 200, { status: "ok" });
     if (request.method === "GET" && url.pathname === "/reddit/health") return json(response, 200, { status: "ok" });
     if (request.method === "GET" && url.pathname === "/vimeo/health") return json(response, 200, { status: "ok" });
-    if (request.method === "POST" && (url.pathname === "/youtube/prepare" || url.pathname === "/reddit/prepare" || url.pathname === "/vimeo/prepare")) return await prepare(request, response);
-    if (request.method === "POST" && (url.pathname === "/youtube/status" || url.pathname === "/reddit/status" || url.pathname === "/vimeo/status")) return await status(request, response);
-    if (request.method === "GET" && (url.pathname === "/youtube/download" || url.pathname === "/reddit/download" || url.pathname === "/vimeo/download")) return await download(request, response, url);
+    if (request.method === "POST" && (url.pathname === "/youtube/prepare" || url.pathname === "/instagram/prepare" || url.pathname === "/reddit/prepare" || url.pathname === "/vimeo/prepare")) return await prepare(request, response);
+    if (request.method === "POST" && (url.pathname === "/youtube/status" || url.pathname === "/instagram/status" || url.pathname === "/reddit/status" || url.pathname === "/vimeo/status")) return await status(request, response);
+    if (request.method === "GET" && (url.pathname === "/youtube/download" || url.pathname === "/instagram/download" || url.pathname === "/reddit/download" || url.pathname === "/vimeo/download")) return await download(request, response, url);
     return json(response, 404, { status: "error", error: { code: "error.api.not_found" } });
   } catch (error) {
     console.error("Media request failed", { error: error instanceof Error ? error.message : "unknown" });
