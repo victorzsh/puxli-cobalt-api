@@ -14,6 +14,7 @@ const publicUrl = (process.env.YOUTUBE_PUBLIC_URL || process.env.RENDER_EXTERNAL
 const ytDlpPath = process.env.YT_DLP_PATH || "/opt/yt-dlp/bin/yt-dlp";
 const jsRuntime = process.env.YOUTUBE_JS_RUNTIME || "node";
 const cookiesPath = process.env.YOUTUBE_COOKIES_PATH || "";
+const youtubeProxyUrl = process.env.YOUTUBE_PROXY_URL || "";
 const allowedQualities = new Set(["max", "2160", "1440", "1080", "720", "480"]);
 const allowedBitrates = new Set(["320", "256", "128"]);
 const videoExtensions = new Set(["mp4", "m4v", "mov", "mkv", "webm"]);
@@ -104,6 +105,7 @@ function metadataArgs(url, extractorArgs) {
     "--socket-timeout", "30",
     "--retries", "2",
   ];
+  if (youtubeProxyUrl) args.push("--proxy", youtubeProxyUrl);
   if (cookiesPath) args.push("--cookies", cookiesPath);
   args.push(url);
   return args;
@@ -296,6 +298,7 @@ function ytDlpArgs(job, extractorArgs) {
     "--retries", "3", "--fragment-retries", "3", "--max-filesize", "1500M",
     "--paths", workDir, "--output", `${job.id}.%(ext)s`,
   ];
+  if (youtubeProxyUrl) args.push("--proxy", youtubeProxyUrl);
   if (extractorArgs) args.push("--extractor-args", extractorArgs);
   if (job.mode === "audio") {
     args.push("--format", "bestaudio/best", "--extract-audio", "--audio-format", "mp3", "--audio-quality", `${job.audioBitrate}K`);
@@ -432,6 +435,7 @@ async function downloadSelectedFormat(job, option) {
     "--socket-timeout", "30", "--retries", "2", "--fragment-retries", "2",
     job.url,
   ];
+  if (youtubeProxyUrl) args.splice(2, 0, "--proxy", youtubeProxyUrl);
   if (cookiesPath) args.splice(2, 0, "--cookies", cookiesPath);
 
   let errorOutput = "";
